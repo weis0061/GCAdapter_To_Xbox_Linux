@@ -62,11 +62,14 @@ echo "Number of input devices: $NumberOfEvents"
 #launch xboxdrv for each controller
 NumberOfEvents=$(ls /dev/input | grep -c event*)
 i=0
-while [ $i>$NumberOfEvents ]; do
-	OccurrencesOfName=$(evtest /dev/input/event"$i" | grep -c "$WiiUGCName")
+while [ $i < $NumberOfEvents ]; do
+	echo "loop"
+	OccurrencesOfName=$(evtest /dev/input/event$i | grep -c "$WiiUGCName"&)
+	killall evtest
 	echo "Occurrences: $OccurrencesOfName"
 	if [ $OccurrencesOfName>0 ]; then
 		echo "Controller found"
+		#launch xboxdrv here
 	else
 		echo "no controller found"
 	fi
