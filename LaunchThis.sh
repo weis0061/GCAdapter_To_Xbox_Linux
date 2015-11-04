@@ -1,25 +1,20 @@
 #!/bin/bash
 
-#IDEA! you could make the program need to be relaunched to reconnect controllers, but then you could check the number of input events, then launch the gamecube driver, then see how many new input events have popped up and pass those to xboxdrv.
-#The downside is that you cant just plug in new controllers in the middle of a game
-
 
 #DOUBLE CHECK THESE VALUES IF YOU HAVE PROBLEMS:
 
+
 #the "Input device name" from "sudo evtest /dev/input/eventXX", after drivers run and the proper event number is determined via "ls /dev/input | grep event*"
 WiiUGCName="Wii U GameCube Adapter Port"
-
 #the time (in seconds) your computer will take to add a controller to the list of input devices
-SleepTime=1;
+SleepTime=1
+#The time (in seconds) your computer will take to print the output of a single device
+evtestTime=0.1
 
 
 
 
-
-
-
-
-
+#functions section
 #This root-check copied from here: http://www.cyberciti.biz/tips/shell-root-user-check-script.html
 # Init
 FILE="/tmp/out.$$"
@@ -30,17 +25,33 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
+#this function copied from user4815162342 here: http://stackoverflow.com/questions/33517928/linux-and-bash-how-can-i-get-the-device-name-of-an-input-device-event/33527233#33527233
+evtest_and_exit() {
+    local evtest_pid
+    evtest /dev/input/event$i &
+    evtest_pid=$!
+    sleep $evtestTime  # give evtest time to produce output
+    kill $evtest_pid
+}
+
 
 function pause(){
 	read -p "Press ENTER to continue\n"
 }
 
+function Launch_xboxdrv(){
+	xboxdrv --evdev /dev/input/event$i --evdev-absmap ABS_X=x1,ABS_Y=y1,ABS_RX=x2,ABS_RY=y2 --axismap -Y1=Y1,-Y2=Y2 --evdev-keymap BTN_X=x,BTN_Y=y,BTN_A=a,BTN_B=b,BTN_START=start,BTN_TL=lb,BTN_TR2=rb --mimic-xpad --silent --evdev-no-grab &
+}
+
+
+
+#main code here
 
 cd "$(dirname "$0")"
 #install prerequisites
-apt-get install libudev-dev libusb-dev xboxdrv evtest
+apt-get install libudev-dev libusb-dev xboxdrv evtest git
 
-#git clone the other stuff
+#git clone the gamecube adapter drivers
 git clone https://github.com/ToadKing/wii-u-gc-adapter
 
 #load module
@@ -51,9 +62,11 @@ cd "wii-u-gc-adapter"
 make
 cd ".."
 
+NumberOfEventsWithoutAdapter=$(ls /dev/input | grep -c event*)
+
 #run the GC adapter driver
 cd "wii-u-gc-adapter"
-./wii-u-gc-adapter >/dev/null 2>/dev/null &
+./wii-u-gc-adapter >../log.log 2>../log.log &
 cd ".."
 
 sleep $SleepTime
@@ -61,28 +74,22 @@ sleep $SleepTime
 #find the controller(s)
 NumberOfEvents=$(ls /dev/input | grep -c event*)
 
-echo "Number of input devices: $NumberOfEvents"
+echo "Events before adapter: $NumberOfEventsWithoutAdapter"
+echo "Events after adapter: $NumberOfEvents"
 
 #launch xboxdrv for each controller
-NumberOfEvents=$(ls /dev/input | grep -c event*)
-i=0
-while [ $i < $NumberOfEvents ]; do
-	echo "loop"
-	OccurrencesOfName=$(evtest /dev/input/event$i | grep -c "$WiiUGCName"&)
-	echo "Occurrences: $OccurrencesOfName"
-	if [ $OccurrencesOfName>0 ]; then
-		echo "Controller found"
-		#launch xboxdrv here
-	else
-		echo "no controller found"
+i=$NumberOfEventsWithoutAdapter
+while [ $i -lt $NumberOfEvents ]; do
+	OccurrencesOfName=$(evtest_and_exit | grep -c "$WiiUGCName")
+	if [ $OccurrencesOfName -gt 0 ]; then
+		echo "Controller found. Launching Xboxdrv."
+		Launch_xboxdrv
 	fi
 	let i=i+1
 done
-	
+
 sleep 1
-
-
-printf "\n\n\nYou can now play games and reconnect controllers. Hit ENTER here when you're done playing.\n\n"
+printf "\n\nYou can now play games and reconnect controllers. Hit ENTER here when you're done playing.\n"
 pause
 
 #clean up the other processes
