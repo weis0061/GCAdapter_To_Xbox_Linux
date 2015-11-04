@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#IDEA! you could make the program need to be relaunched to reconnect controllers, but then you could check the number of input events, then launch the gamecube driver, then see how many new input events have popped up and pass those to xboxdrv.
+
+
 #DOUBLE CHECK THESE VALUES IF YOU HAVE PROBLEMS:
 
 #the "Input device name" from "sudo evtest /dev/input/eventXX", after drivers run and the proper event number is determined via "ls /dev/input | grep event*"
@@ -65,7 +68,6 @@ i=0
 while [ $i < $NumberOfEvents ]; do
 	echo "loop"
 	OccurrencesOfName=$(evtest /dev/input/event$i | grep -c "$WiiUGCName"&)
-	killall evtest
 	echo "Occurrences: $OccurrencesOfName"
 	if [ $OccurrencesOfName>0 ]; then
 		echo "Controller found"

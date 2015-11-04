@@ -1,5 +1,9 @@
 #!/bin/bash
 
+#IDEA! you could make the program need to be relaunched to reconnect controllers, but then you could check the number of input events, then launch the gamecube driver, then see how many new input events have popped up and pass those to xboxdrv.
+#The downside is that you cant just plug in new controllers in the middle of a game
+
+
 #DOUBLE CHECK THESE VALUES IF YOU HAVE PROBLEMS:
 
 #the "Input device name" from "sudo evtest /dev/input/eventXX", after drivers run and the proper event number is determined via "ls /dev/input | grep event*"
