@@ -11,7 +11,7 @@ fi
 
 
 function pause(){
-	read -p "Press ENTER to continue"
+	read -p "Press ENTER to continue\n"
 }
 
 
@@ -36,9 +36,9 @@ cd "wii-u-gc-adapter"
 cd ".."
 
 #find the controller(s)
-ls /dev/input/ | grep event*
-echo NumberOfEvents: $?
-$echo NumberOfEvents
+NumberOfEvents=$(ls /dev/input/ | grep event* -c)
+
+printf(NumberOfEvents)
 
 #launch xboxdrv for each controller
 
