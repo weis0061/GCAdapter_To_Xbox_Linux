@@ -17,8 +17,6 @@ evtestTime=0.1
 #functions section
 #This root-check copied from here: http://www.cyberciti.biz/tips/shell-root-user-check-script.html
 # Init
-FILE="/tmp/out.$$"
-GREP="/bin/grep"
 # Make sure only root can run our script
 if [[ $EUID -ne 0 ]]; then
    echo "This script must be run as root." 1>&2
@@ -39,10 +37,11 @@ function pause(){
 	read -p "Press ENTER to continue\n"
 }
 
+#THE KEY BINDINGS ARE DOWN HERE
 function Launch_xboxdrv(){
-	xboxdrv --evdev /dev/input/event$i --evdev-absmap ABS_X=x1,ABS_Y=y1,ABS_RX=x2,ABS_RY=y2 --axismap -Y1=Y1,-Y2=Y2 --evdev-keymap BTN_X=x,BTN_Y=y,BTN_A=a,BTN_B=b,BTN_START=start,BTN_TL=lb,BTN_TR2=rb --mimic-xpad --silent --evdev-no-grab &
+	xboxdrv --evdev /dev/input/event$i --evdev-absmap ABS_X=x1,ABS_Y=y1,ABS_RX=x2,ABS_RY=y2 --axismap -Y1=Y1,-Y2=Y2 --evdev-keymap BTN_B=x,BTN_X=y,BTN_A=a,BTN_Y=b,BTN_START=start,BTN_TL=lb,BTN_TR2=rb --mimic-xpad --silent --evdev-no-grab &
 }
-
+#544=du,545=dd,546=dl,547=dr
 
 
 #main code here
